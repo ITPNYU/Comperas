@@ -5,8 +5,10 @@ import processing.video.Capture;
 Capture cam;// regular processing libary
 int threshold = 150;  //255 is white, 0 is black
 PImage backgroundImage;//this is used to hold the previous frame
+PImage debugImage; //to color the all the changing pixels;
 int aveX, aveY;  //this is what we are trying to find
-
+boolean debug = true;
+boolean compareAgainstPreviousFrame = true;
 
 public void setup() {
   size(640, 480);
@@ -14,19 +16,21 @@ public void setup() {
   // cam = new Capture(this, width, height, Capture.list()[6]); //this is a way to specify a specific camera
   cam = new Capture(this, width, height); 
   cam.start();
-  backgroundImage = new PImage(width, height);
+  backgroundImage = new PImage(cam.width, cam.height);
+  debugImage = new PImage(cam.width, cam.height);
   grabBackground();  //grab the background now so you have a previous frame in the first loop
 }
 
 public void grabBackground() {
   backgroundImage.copy(cam, 0, 0, cam.width, cam.height, 0, 0, cam.width, cam.height);
   backgroundImage.updatePixels();
+  if (debug) println("grab background");
 }
 
 public void draw() {
   if (cam.available()) {
     cam.read();
-
+    if (debug) debugImage.copy(cam, 0, 0, cam.width, cam.height, 0, 0, cam.width, cam.height);
     int numberOfChanges = 0;  //we are going to find the average location of change pixes so
     int sumX = 0;  //we will need the sum of all the x find, the sum of all the y find and the total finds
     int sumY = 0;
@@ -56,10 +60,12 @@ public void draw() {
           sumX = sumX + col;
           sumY= sumY + row;
           numberOfChanges++;
+          if (debug) debugImage.pixels[offset] = 0xffff0000;
         }
       }
     }
-    image(cam, 0, 0);
+    if(debug) image(debugImage,0,0);
+    else image(cam, 0, 0);
     if (numberOfChanges> 10) {
       //find the average location of all the changed pixels
       aveX = sumX/numberOfChanges;
@@ -70,7 +76,8 @@ public void draw() {
       //if not much change just us the last average
       ellipse(aveX-10, (aveY-10), 20, 20);
     }
-    grabBackground(); //dont forget to make the current frame the background to check against next time
+
+    if (compareAgainstPreviousFrame) grabBackground(); //dont forget to make the current frame the background to check against next time
   }
 }
 
@@ -84,6 +91,10 @@ public void keyPressed() {
   else if (key == '=') {
     threshold++;
     println("Threshold " + threshold);
+  }else if(key == 'b'){
+     grabBackground();
+  }else if (key == 'd'){
+    debug = ! debug;
   }
 }
 
