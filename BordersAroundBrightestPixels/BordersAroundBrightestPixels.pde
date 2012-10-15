@@ -1,5 +1,5 @@
 import processing.video.Capture;
-Capture cam;// regular processing libary
+Capture cam;// regular processing libary    
 int threshold = 230; //255 is white, 0 is black
 void setup() {
   size(640, 480);
