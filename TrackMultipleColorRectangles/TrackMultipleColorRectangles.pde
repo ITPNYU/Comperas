@@ -1,13 +1,13 @@
 import processing.video.*;
-import java.awt.Rectangle;
 
 float goalRed = 200;
 float goalGreen = 0;
 float goalBlue = 0;
 int threshold = 40;
-int reach = 5;
+int reach = 15;
 long elapsedTime;
 Capture cam;
+
 void setup() {
   size(640, 480);
   cam = new Capture(this, width, height);
@@ -42,16 +42,14 @@ void draw() {
           for (int i = 0; i < boxes.size(); i++) {
             Rectangle existingBox =  (Rectangle) boxes.get(i);
             //is this spot in an  existing box
-            Rectangle inflatedBox = new Rectangle(existingBox); //copy the existing box
-            inflatedBox.grow(reach, reach); //widen it's reach
-            if (inflatedBox.contains(col, row)) {
+            if (existingBox.isNear(col, row,reach)) {
               existingBox.add(col,row);
               foundAHome = true; //no need to make a new one
               break; //no need to look through the rest of the boxes
             }
           }
           //if this does not belong to one of the existing boxes make a new one at this place
-          if (foundAHome == false) boxes.add(new Rectangle(col, row,0,0));
+          if (foundAHome == false) boxes.add(new Rectangle(col, row));
         }
       }
     }
@@ -62,7 +60,7 @@ void draw() {
     stroke(255, 0, 0);
     for (int i = 0; i < boxes.size(); i++) {
       Rectangle thisBox =  (Rectangle) boxes.get(i);
-      rect(thisBox.x, thisBox.y, thisBox.width, thisBox.height);
+      thisBox.draw();
     }
 
 
@@ -84,11 +82,11 @@ void keyPressed() {
     threshold++;
     println("Threshold " + threshold);
   } 
-  else if (key == '_') {
+  else if (key == 'r') {
     reach--;
     println("reach " + reach);
   } 
-  else if (key == '+') {
+  else if (key == 'R') {
     reach++;
     println("reach " + reach);
   } 
