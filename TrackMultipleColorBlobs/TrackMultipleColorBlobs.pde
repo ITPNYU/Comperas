@@ -1,5 +1,4 @@
 import processing.video.*;
-import java.awt.Rectangle;
 
 float goalRed = 200;
 float goalGreen = 0;
@@ -69,19 +68,7 @@ void draw() {
 }
 
 
-class Edges {
 
-  int leftEdge ; 
-  int rightEdge ;
-  Edges(int _col) {
-    leftEdge = _col;
-    rightEdge = _col;
-  }
-  void setEdges(int _col) {
-    if (_col < leftEdge) leftEdge = _col; 
-    if (_col > rightEdge) rightEdge = _col;
-  }
-}
 
 class Blob {
   //keep track of the leftMost and rightMost at each row
