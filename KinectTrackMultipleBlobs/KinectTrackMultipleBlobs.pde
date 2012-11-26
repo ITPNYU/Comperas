@@ -70,12 +70,12 @@ void draw() {
       }
     }
   }
-  /*
+
    for (int i = 0; i < blobs.size(); i++) {
         Blob3D thisBlob =  (Blob3D) blobs.get(i);
      thisBlob.findCenter();
    }
-   */
+ 
  // myIdentifier.findMatchesFromPrevious(blobs);
   //consolidate(boxes,0,0);
   image(cam, 0, 0);
@@ -83,9 +83,9 @@ void draw() {
   stroke(255, 0, 0);
   for (int i = 0; i < blobs.size(); i++) {
     Blob3D thisBlob =  (Blob3D) blobs.get(i);
-    thisBlob.drawLines();
+   // thisBlob.drawLines();
    // thisBlob.findCenter();
-   // thisBlob.drawNumber();
+   thisBlob.drawNumber();
   }
   // println("Number of Blobs " + blobs.size());
 }

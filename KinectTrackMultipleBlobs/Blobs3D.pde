@@ -5,11 +5,13 @@ class Blob3D {
   int centerX;
   int centerY;
   int serialNumber;
+  long age;
 
   Blob3D(int _col, int _row, int _d) {
     setPoint(_col, _row, _d);
     centerX = _col;
     centerY = _row;
+    age = millis();
   }
 
   void setPoint(int _col, int _row, int _d) {
@@ -56,9 +58,10 @@ class Blob3D {
   }
   
   void drawNumber(){
-    textFont(myFont,72);
-    println("serial " + serialNumber + " " + centerX + "  " + centerY);
-    text(">"+ serialNumber, centerX,centerY);
+    fill(255);
+    textFont(myFont,48);
+   // println("serial " + serialNumber + " " + centerX + "  " + centerY);
+    text("#"+ serialNumber, centerX,centerY);
   }
   void findCenter(){
      int sumX = 0;
@@ -72,8 +75,10 @@ class Blob3D {
         allRows++;
       }
      }
+     if(allRows != 0){
      centerX  = sumX/2*allRows;
      centerY  = sumY/allRows;
+     }
   }
   void drawLines() {
     int lastX = -1;
