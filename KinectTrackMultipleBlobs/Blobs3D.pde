@@ -1,11 +1,12 @@
 class Blob3D {
   //keep track of the leftMost and rightMost at each row
   Edges [] myEdges = new Edges[cam.height];
-  int myColor = 0;
+  
   int centerX;
   int centerY;
   int serialNumber;
   long age;
+  int myColor;
 
   Blob3D(int _col, int _row, int _d) {
     setPoint(_col, _row, _d);
@@ -79,6 +80,7 @@ class Blob3D {
      centerX  = sumX/2*allRows;
      centerY  = sumY/allRows;
      }
+  
   }
   void drawLines() {
     int lastX = -1;

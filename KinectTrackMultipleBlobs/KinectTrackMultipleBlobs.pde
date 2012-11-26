@@ -53,13 +53,14 @@ void draw() {
         //be pessimistic
         boolean foundAHome = false;
         //look throught the existing
+        int ccolor =  blobs.size()*8000;
         for (int i = 0; i < blobs.size(); i++) {
           Blob3D existingBlob =  (Blob3D) blobs.get(i);
           //is this spot is near an existing Blob
           if (existingBlob.getDistance(col, row, thisDepth, reach) < reach) {
             existingBlob.setPoint(col, row, thisDepth);
             foundAHome = true; //no need to make a new one
-            cam.pixels[offset] = 0;
+            cam.pixels[offset] = ccolor;
             break; //no need to look through the rest of the boxes
           }
         }
@@ -73,17 +74,17 @@ void draw() {
 
    for (int i = 0; i < blobs.size(); i++) {
         Blob3D thisBlob =  (Blob3D) blobs.get(i);
-     thisBlob.findCenter();
+   //  thisBlob.findCenter();
    }
  
- // myIdentifier.findMatchesFromPrevious(blobs);
+myIdentifier.findMatchesFromPrevious(blobs);
   //consolidate(boxes,0,0);
   image(cam, 0, 0);
   fill(0, 0, 0, 0);
   stroke(255, 0, 0);
   for (int i = 0; i < blobs.size(); i++) {
     Blob3D thisBlob =  (Blob3D) blobs.get(i);
-   // thisBlob.drawLines();
+   thisBlob.drawPoints();
    // thisBlob.findCenter();
    thisBlob.drawNumber();
   }
