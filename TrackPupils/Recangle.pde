@@ -17,6 +17,9 @@ class Rectangle {
   int getHeight(){
     return (furthestDown-furthestUp);
   }
+  int getArea(){
+    return (getWidth()&getHeight());
+  }
 
   void add(int _x, int _y) {
     if (_x < furthestLeft) furthestLeft = _x;
