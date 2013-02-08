@@ -15,11 +15,12 @@ int userID; int[] userMap;
 // declare our images 
 PImage backgroundImage; 
 PImage resultImage;
+BufferedImage  desktop;
+Rectangle bounds;
 Robot myRobot;
-int drawingThreshold = 1000;
+int drawingThreshold = 800;
 float lastX = -1;
 float lastY = -1;
-
 PGraphics whiteBoard;
 
 void setup() {
@@ -46,7 +47,26 @@ void setup() {
   kinect.alternativeViewPointDepthToImage();
   //create a buffer image to work with instead of using sketch pixels
   resultImage = new PImage(640, 480, RGB);
+  
+   GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+  GraphicsDevice[] gs = ge.getScreenDevices();
+ // int whichScreen = gs.length-1;
+ int whichScreen = 0;
+  DisplayMode mode = gs[whichScreen].getDisplayMode();
+  bounds = new Rectangle(0, 0, mode.getWidth(), mode.getHeight());
+  desktop = new BufferedImage(mode.getWidth(), mode.getHeight(), BufferedImage.TYPE_INT_RGB);
+  try {
+    myRobot = new Robot(gs[whichScreen]);
+  }
+  catch(AWTException e) {
+    System.err.println("Screen capture failed.");
+  }
+
+  
+  
 }
+
+
 void draw() {
   kinect.update();
   // get the Kinect color image
@@ -86,11 +106,12 @@ void draw() {
     //convert the weird kinect coordinates to screen coordinates.
     kinect.convertRealWorldToProjective(handVec, myPositionScreenCoords);
     
-    println("hand z:" + myPositionScreenCoords.z );
+   // println("hand z:" + myPositionScreenCoords.z );
     if (myPositionScreenCoords.z < drawingThreshold){
        whiteBoard.beginDraw();
        
-       whiteBoard.fill(255,0,0);
+       whiteBoard.stroke(255,0,0);
+       whiteBoard.strokeWeight(4);
        if (lastX == -1) {
          lastX = myPositionScreenCoords.x;
          lastY = myPositionScreenCoords.y;
@@ -165,21 +186,7 @@ void onProgressGesture(String strGesture, PVector position, float progress) {
 
 
 PImage getScreen() {
-  GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-  GraphicsDevice[] gs = ge.getScreenDevices();
- // int whichScreen = gs.length-1;
- int whichScreen = 0;
-  DisplayMode mode = gs[whichScreen].getDisplayMode();
-  Rectangle bounds = new Rectangle(0, 0, mode.getWidth(), mode.getHeight());
-  BufferedImage desktop = new BufferedImage(mode.getWidth(), mode.getHeight(), BufferedImage.TYPE_INT_RGB);
-
-  try {
-    desktop = new Robot(gs[whichScreen]).createScreenCapture(bounds);
-  }
-  catch(AWTException e) {
-    System.err.println("Screen capture failed.");
-  }
-
+  desktop = myRobot.createScreenCapture(bounds);
   return (new PImage(desktop));
 }
 
