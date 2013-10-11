@@ -13,19 +13,36 @@ import SimpleOpenNI.*;
 
 SimpleOpenNI  context;
 
-String whatAreYouCovering = "";
+PVector leftHand = new PVector();
+PVector rightHand = new PVector();
+PVector leftHip = new PVector();
+PVector rightHip = new PVector();
+PVector torso = new PVector();
+PVector head = new PVector();
+PVector neck = new PVector();
+PVector leftElbow = new PVector();
+PVector rightElbow = new PVector();
+PVector rightShoulder = new PVector();
+PVector leftShoulder = new PVector();
+PVector rightKnee = new PVector();
+PVector leftKneee = new PVector();
 
 
 
 void setup()
 {
   context = new SimpleOpenNI(this);
-
+  if (context.isInit() == false)
+  {
+    println("Can't init SimpleOpenNI, maybe the camera is not connected!"); 
+    exit();
+    return;
+  }
   // enable depthMap generation 
   context.enableDepth();
 
   // enable skeleton generation for all joints
-  context.enableUser(SimpleOpenNI.SKEL_PROFILE_ALL);
+  context.enableUser();
 
   background(200, 0, 0);
 
@@ -45,83 +62,64 @@ void draw()
 
   // draw depthImageMap
   image(context.depthImage(), 0, 0);
-  text(whatAreYouCovering, 100, 100);
+
 
   // draw the skeleton if it's available
-  if (context.isTrackingSkeleton(1))
-    drawSkeleton(1);
+  if (context.isTrackingSkeleton(1)) {
+    kinectDrawsSkeleton(1);
+    locatePartsInLocalCoordinates()
+    float groinDist = PVector.dist(leftHand, leftHip) + PVector.dist(rightHand, rightHip);
+    float heartDist = PVector.dist(leftHand, torso) + PVector.dist(rightHand, torso);
+    float headDist = PVector.dist(leftHand, head) + PVector.dist(rightHand, head);
+
+    if (groinDist < heartDist && groinDist < headDist) {
+      whatAreYouCovering = "Groin";
+      println("Groing " + groinDist);
+    }
+    else if (heartDist < groinDist && heartDist < headDist) {
+      whatAreYouCovering = "Heart";
+      println("Heart " + heartDist);
+    }
+    else if (headDist < groinDist && headDist < heartDist) {
+      whatAreYouCovering = "Head";
+      println("Head " + headDist);
+    }
+  }
 }
 
-// draw the skeleton with the selected joints
-void drawSkeleton(int userId)
-{
-  // to get the 3d joint data
-  /*
-  PVector jointPos = new PVector();
-   context.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_NECK,jointPos);
-   println(jointPos);
-   */
+void locatePartsInLocalCoordinates() {
 
-  PVector leftHand = new PVector();
-  PVector rightHand = new PVector();
-  PVector leftHip = new PVector();
-  PVector rightHip = new PVector();
-  PVector torso = new PVector();
-  PVector head = new PVector();
-
-
-  //PVector leftElbow = new PVector();
 
   context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND, leftHand);
   context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND, rightHand);
-
   context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HIP, rightHip);
   context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HIP, leftHip);
   context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, torso);
   context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_HEAD, head);
-
-  //int midy = (int) (leftHip.y + Math.abs(leftHip.y -rightHip.y)/2);
-  //int midx = (int) (leftHip.x + Math.abs(leftHip.x -rightHip.x)/2);
-
-  float groinDist = PVector.dist(leftHand, leftHip) + PVector.dist(rightHand, rightHip);
-  float heartDist = PVector.dist(leftHand, torso) + PVector.dist(rightHand, torso);
-  float headDist = PVector.dist(leftHand, head) + PVector.dist(rightHand, head);
-
-  //float hdist = PVector.dist(leftHand, rightHand);
-  if (groinDist < heartDist && groinDist < headDist) {
-    whatAreYouCovering = "Groin";
-    println("Groing " + groinDist);
-  }
-  else if (heartDist < groinDist && heartDist < headDist) {
-    whatAreYouCovering = "Heart";
-    println("Heart " + heartDist);
-  }
-  else if (headDist < groinDist && headDist < heartDist) {
-    whatAreYouCovering = "Head";
-    println("Head " + headDist);
-  }
-  //context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_ELBOW,leftElbow);
-  //int midy = (int) (leftHand.y + Math.abs(leftHand.y -leftElbow.y));
-  //int midx = (int) (leftHand.x + Math.abs(leftHand.x -leftElbow.x));
+  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_KNEE, leftKnee);
+  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, rightKnee);
+  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, rightShoulder);
+  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, leftShoulder);
+  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, rightElbow);
+  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, leftElbow);
+}
 
 
+void kinectDrawsSkeleton(int userId)
+{
+  //Let the Kinect Draw the Skeleton without you seeing its weird numbers
   context.drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
-
   context.drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_LEFT_SHOULDER);
   context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_ELBOW);
   context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, SimpleOpenNI.SKEL_LEFT_HAND);
-
   context.drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
   context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_ELBOW);
   context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, SimpleOpenNI.SKEL_RIGHT_HAND);
-
   context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
   context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-
   context.drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_LEFT_HIP);
   context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_HIP, SimpleOpenNI.SKEL_LEFT_KNEE);
   context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_KNEE, SimpleOpenNI.SKEL_LEFT_FOOT);
-
   context.drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_RIGHT_HIP);
   context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_RIGHT_KNEE);
   context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, SimpleOpenNI.SKEL_RIGHT_FOOT);
@@ -130,51 +128,20 @@ void drawSkeleton(int userId)
 // -----------------------------------------------------------------
 // SimpleOpenNI events
 
-void onNewUser(int userId)
+void onNewUser(SimpleOpenNI curContext, int userId)
 {
   println("onNewUser - userId: " + userId);
-  println("  start pose detection");
+  println("\tstart tracking skeleton");
 
-  context.startPoseDetection("Psi", userId);
+  curContext.startTrackingSkeleton(userId);
 }
 
-void onLostUser(int userId)
+void onLostUser(SimpleOpenNI curContext, int userId)
 {
   println("onLostUser - userId: " + userId);
 }
-
-void onStartCalibration(int userId)
+void onVisibleUser(SimpleOpenNI curContext, int userId)
 {
-  println("onStartCalibration - userId: " + userId);
+  //println("onVisibleUser - userId: " + userId);
 }
 
-void onEndCalibration(int userId, boolean successfull)
-{
-  println("onEndCalibration - userId: " + userId + ", successfull: " + successfull);
-
-  if (successfull) 
-  { 
-    println("  User calibrated !!!");
-    context.startTrackingSkeleton(userId);
-  } 
-  else 
-  { 
-    println("  Failed to calibrate user !!!");
-    println("  Start pose detection");
-    context.startPoseDetection("Psi", userId);
-  }
-}
-
-void onStartPose(String pose, int userId)
-{
-  println("onStartPose - userId: " + userId + ", pose: " + pose);
-  println(" stop pose detection");
-
-  context.stopPoseDetection(userId); 
-  context.requestCalibrationSkeleton(userId, true);
-}
-
-void onEndPose(String pose, int userId)
-{
-  println("onEndPose - userId: " + userId + ", pose: " + pose);
-}
