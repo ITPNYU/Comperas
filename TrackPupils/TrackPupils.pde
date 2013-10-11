@@ -14,9 +14,10 @@ void setup() {
   // println(Capture.list());
   //println(Capture.list());
   //delay(1000);
-  cam = new Capture(this);
+  cam = new Capture(this,640,480);
+     cam.settings();
   delay(1000);
-  cam.start();
+ // cam.start();
   delay(1000);
 }
 void draw() {
@@ -128,6 +129,9 @@ void keyPressed() {
   else if (key == 't') {
 
     println("Elapsedtime " + elapsedTime);
+  }else if (key == 's') {
+   cam.settings();
+ 
   }
 }
 
