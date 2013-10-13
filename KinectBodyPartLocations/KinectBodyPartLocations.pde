@@ -5,32 +5,18 @@
  * http://code.google.com/p/simple-openni
  * --------------------------------------------------------------------------
  * prog:  Max Rheiner / Interaction Design / zhdk / http://iad.zhdk.ch/
- * date:  02/16/2011 (m/d/y)
- * ----------------------------------------------------------------------------
  */
-
 import SimpleOpenNI.*;
+
 
 SimpleOpenNI  context;
 
-PVector leftHand = new PVector();
-PVector rightHand = new PVector();
-PVector leftHip = new PVector();
-PVector rightHip = new PVector();
-PVector torso = new PVector();
-PVector head = new PVector();
-PVector neck = new PVector();
-PVector leftElbow = new PVector();
-PVector rightElbow = new PVector();
-PVector rightShoulder = new PVector();
-PVector leftShoulder = new PVector();
-PVector rightKnee = new PVector();
-PVector leftKnee = new PVector();
 
-
-
+BodyParts bodyParts;
 void setup()
 {
+
+  size(640, 480);
   context = new SimpleOpenNI(this);
   if (context.isInit() == false)
   {
@@ -43,16 +29,8 @@ void setup()
 
   // enable skeleton generation for all joints
   context.enableUser();
-
-  background(200, 0, 0);
-
-  stroke(0, 0, 255);
-  strokeWeight(3);
-  smooth();
-  PFont myFont = createFont("FFScala", 32);
-  textFont(myFont);
-
-  size(context.depthWidth(), context.depthHeight());
+  bodyParts = new BodyParts(context);
+  fill(255, 0, 0);
 }
 
 void draw()
@@ -60,58 +38,18 @@ void draw()
   // update the cam
   context.update();
 
+
   // draw depthImageMap
   image(context.depthImage(), 0, 0);
-
-
-  // draw the skeleton if it's available
-  if (context.isTrackingSkeleton(1)) {
-    kinectDrawsSkeleton(1);
-    locatePartsInLocalCoordinates(1);
-    
-    float handToHeadDist = dist(rightHand.x,rightHand.y,head.x,head.y);
-    println(handToHeadDist);
-    if (handToHeadDist < 100){
-      ellipse(head.x,head.y,100,100);
-    }
-    
+  bodyParts.findParts();
+  PVector leftHand = bodyParts.getLeftHand();
+  PVector head = bodyParts.getHead();
+  ellipse(leftHand.x, leftHand.y, 20, 20);
+  if( dist(leftHand.x, leftHand.y, head.x, head.y) ){
+    ellipse(head.x,head.y, 100,100);
   }
 }
 
-void locatePartsInLocalCoordinates(int userId) {
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND, leftHand);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND, rightHand);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HIP, rightHip);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HIP, leftHip);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_TORSO, torso);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_HEAD, head);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_KNEE, leftKnee);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, rightKnee);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, rightShoulder);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, leftShoulder);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, rightElbow);
-  context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, leftElbow);
-}
-
-
-void kinectDrawsSkeleton(int userId){
-  //Let the Kinect Draw the Skeleton without you seeing its weird numbers
-  context.drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_LEFT_SHOULDER);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_LEFT_ELBOW);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_ELBOW, SimpleOpenNI.SKEL_LEFT_HAND);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_NECK, SimpleOpenNI.SKEL_RIGHT_SHOULDER);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_RIGHT_ELBOW);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_ELBOW, SimpleOpenNI.SKEL_RIGHT_HAND);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_SHOULDER, SimpleOpenNI.SKEL_TORSO);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_LEFT_HIP);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_HIP, SimpleOpenNI.SKEL_LEFT_KNEE);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_LEFT_KNEE, SimpleOpenNI.SKEL_LEFT_FOOT);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_TORSO, SimpleOpenNI.SKEL_RIGHT_HIP);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_HIP, SimpleOpenNI.SKEL_RIGHT_KNEE);
-  context.drawLimb(userId, SimpleOpenNI.SKEL_RIGHT_KNEE, SimpleOpenNI.SKEL_RIGHT_FOOT);
-}
 
 // -----------------------------------------------------------------
 // SimpleOpenNI events
