@@ -25,9 +25,9 @@ PVector rightElbow = new PVector();
 PVector rightShoulder = new PVector();
 PVector leftShoulder = new PVector();
 PVector rightKnee = new PVector();
-PVector leftKneee = new PVector();
+PVector leftKnee = new PVector();
 
-
+String whatAreYouCovering = "Nothing";
 
 void setup()
 {
@@ -67,7 +67,7 @@ void draw()
   // draw the skeleton if it's available
   if (context.isTrackingSkeleton(1)) {
     kinectDrawsSkeleton(1);
-    locatePartsInLocalCoordinates()
+    locatePartsInLocalCoordinates(1);
     float groinDist = PVector.dist(leftHand, leftHip) + PVector.dist(rightHand, rightHip);
     float heartDist = PVector.dist(leftHand, torso) + PVector.dist(rightHand, torso);
     float headDist = PVector.dist(leftHand, head) + PVector.dist(rightHand, head);
@@ -87,7 +87,7 @@ void draw()
   }
 }
 
-void locatePartsInLocalCoordinates() {
+void locatePartsInLocalCoordinates(int userId) {
 
 
   context.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND, leftHand);
