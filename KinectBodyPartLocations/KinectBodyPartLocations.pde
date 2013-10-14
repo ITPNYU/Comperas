@@ -45,7 +45,7 @@ void draw()
   PVector leftHand = bodyParts.getLeftHand();
   PVector head = bodyParts.getHead();
   ellipse(leftHand.x, leftHand.y, 20, 20);
-  if( dist(leftHand.x, leftHand.y, head.x, head.y) ){
+  if( dist(leftHand.x, leftHand.y, head.x, head.y) > 100 ){
     ellipse(head.x,head.y, 100,100);
   }
 }
