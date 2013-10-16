@@ -12,6 +12,7 @@
 import SimpleOpenNI.*;
 
 SimpleOpenNI  context;
+<<<<<<< HEAD
 
 PVector leftHand = new PVector();
 PVector rightHand = new PVector();
@@ -27,6 +28,23 @@ PVector leftShoulder = new PVector();
 PVector rightKnee = new PVector();
 PVector leftKnee = new PVector();
 
+=======
+ 
+  PVector leftHand = new PVector();
+  PVector rightHand = new PVector();
+  PVector leftHip = new PVector();
+  PVector rightHip = new PVector();
+  PVector torso = new PVector();
+  PVector head = new PVector();
+  PVector neck = new PVector();
+  PVector leftElbow = new PVector();
+  PVector rightElbow = new PVector();
+  PVector rightShoulder = new PVector();
+  PVector leftShoulder = new PVector();
+  PVector rightKnee = new PVector();
+  PVector leftKnee = new PVector();
+  
+>>>>>>> back at you
 String whatAreYouCovering = "Nothing";
 
 void setup()
@@ -85,6 +103,7 @@ void draw()
       println("Head " + headDist);
     }
   }
+  text(whatAreYouCovering, 100,100);
 }
 
 void locatePartsInLocalCoordinates(int userId) {
@@ -144,4 +163,3 @@ void onVisibleUser(SimpleOpenNI curContext, int userId)
 {
   //println("onVisibleUser - userId: " + userId);
 }
-
