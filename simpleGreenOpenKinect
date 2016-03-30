@@ -1,0 +1,66 @@
+// Daniel Shiffman
+// All features test
+
+// https://github.com/shiffman/OpenKinect-for-Processing
+// http://shiffman.net/p5/kinect/
+
+import org.openkinect.freenect.*;
+import org.openkinect.processing.*;
+
+Kinect kinect;
+PImage depthImg;
+
+float deg;
+
+boolean ir = false;
+boolean colorDepth = false;
+boolean mirror = false;
+int minDepth =  60;
+int maxDepth = 860;
+
+int cxoffset = 0;
+int cyOffset = 10;
+
+void setup() {
+  size(1280, 520);
+  kinect = new Kinect(this);
+  kinect.initDepth();
+  kinect.initVideo();
+  //kinect.enableIR(ir);
+  kinect.enableColorDepth(colorDepth);
+
+  deg = kinect.getTilt();
+  // kinect.tilt(deg);
+    depthImg = new PImage(kinect.width, kinect.height);
+}
+
+
+void draw() {
+  background(0);
+  image(kinect.getVideoImage(), 0, 0);
+ //image(kinect.getDepthImage(), 0, 0);
+
+  // Threshold the depth image
+  int[] rawDepth = kinect.getRawDepth();
+  for (int row=0; row < kinect.height-cyOffset; row++) {
+  for (int col=0; col < kinect.width; col++) {
+      
+        int offset = row * kinect.width + col;
+             int coffset = (row+cyOffset) * kinect.width + col;
+    if (rawDepth[offset] >= minDepth && rawDepth[offset] <= maxDepth) {
+      depthImg.pixels[offset] = kinect.getVideoImage().pixels[coffset];
+    } else {
+      depthImg.pixels[offset] = color(0);
+    }
+  }
+  }
+
+  // Draw the thresholded image
+  depthImg.updatePixels();
+  image(depthImg, kinect.width, 0);
+
+}
+
+void keyPressed(){
+  if (key == '+') cyOffset ++;
+}
