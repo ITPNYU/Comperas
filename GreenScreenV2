@@ -1,0 +1,59 @@
+import org.openkinect.freenect.*;
+import org.openkinect.processing.*;
+
+Kinect2 kinect;
+
+int threshold = 1400;
+
+PImage foreGround;
+
+void setup() {
+  size(500, 500 );
+  kinect = new Kinect2(this);
+  kinect.initVideo();
+  kinect.initDepth();
+  kinect.initRegistered();
+  kinect.initDevice();
+  foreGround = new PImage(kinect.depthWidth, kinect.depthHeight, ARGB);
+}
+
+void draw() {
+  //if the kinect has not warmed up yet bail, bug?
+  background(0);
+  PImage colorPicture = kinect.getRegisteredImage(); //kinect.getVideoImage();
+
+  //ask kinect for an array of depth pixels
+  int[] depth = kinect.getRawDepth();
+  if (depth == null) return;
+
+  foreGround.loadPixels();
+  for (int row = 0; row < kinect.depthHeight; row++) {
+    for (int col = 0; col< kinect.depthWidth; col++) {
+      int offset = col + row*kinect.depthWidth;
+      // Grabbing the raw depth
+      int rawDepth = depth[offset];
+      if (rawDepth > 0 && rawDepth < threshold) {
+        foreGround .pixels[offset] = colorPicture.pixels[offset];
+      } else {
+        foreGround .pixels[offset] = color(0, 0, 0, 0);
+      }
+    }
+  }
+
+  //paint the color image on the screen
+  foreGround.updatePixels();
+  image(foreGround, 0, 0);
+}
+
+
+// Adjust the threshold with key presses
+void keyPressed() {
+
+  if (key == CODED) {
+    if (keyCode == UP) {
+      threshold++;
+    } else if (keyCode == DOWN) {
+      threshold--;
+    }
+  }
+}
