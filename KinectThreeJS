@@ -105,10 +105,10 @@
         mat = new THREE.MeshBasicMaterial({ map: p5Texture, transparent: true, opacity: 1, side: THREE.DoubleSide });
         var plane = new THREE.Mesh(geo, mat);
         plane.position.y = 0;
-		plane.position.z = -100;
+				plane.position.z = -100;
         plane.rotation.x = -Math.PI/2;
         plane.rotation.y = -Math.PI/2;
-		plane.scale.set(2,2,2);
+				plane.scale.set(2,2,2);
         scene.add(plane);
 
 ///START LOADING MODELS
@@ -217,10 +217,9 @@
         document.addEventListener( 'mouseup', onDocumentMouseUp, false );
         document.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
         document.addEventListener( 'MozMousePixelScroll', onDocumentMouseWheel, false);
-
         window.addEventListener( 'resize', onWindowResize, false );
 
-
+/////KINECT TRACKING
 				var Kinect2 = require('kinect2');
 				var kinect = new Kinect2();
 				if(kinect.open()) {
@@ -232,29 +231,19 @@
 								if (	myHead){
 									if ( bodyFrame.bodies[i].leftHandState == 3){
 							     	myHead.position.y = -bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthY * 512;
-								   	myHead.position.x = bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthX * 512;
+								   	myHead.position.z = bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthX * 512;
+								//	myHead.position.x = bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthX * 512;
 										console.log("state:" + bodyFrame.bodies[i].leftHandState  +  " pos:" + bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthX * 512);
 									}
 								}
-							
 							}
-
 						}
 					});
 
 					//request body frames
 					kinect.openBodyReader();
 
-					// //close the kinect after 5 seconds
-					setTimeout(function(){
-						kinect.close();
-						console.log("Kinect Closed");
-					}, 30000);
 				}
-
-
-
-
 
         animate();
     }
@@ -263,7 +252,7 @@
     function animate() {
         requestAnimationFrame( animate );
 			  videoImageContext.drawImage(foregroundVideo, 0, 0);
-		 	videoTexture.needsUpdate = true;
+		 	  videoTexture.needsUpdate = true;
         update();
     }
 
@@ -288,9 +277,7 @@
         bug4.move();
         bug4.display();
         p5Texture.needsUpdate = true;
-
         renderer.render( scene, camera );
-
     }
 
     function onWindowResize() {
