@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - equirectangular video panorama</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family:Monospace;
+				font-size:13px;
+				font-weight: bold;
+				text-align:center;
+			}
+
+			a {
+				color: #ffffff;
+			}
+		</style>
+	</head>
+	<body>
+
+<div id="container"></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.min.js"></script>
+<script src="loaders/OBJLoader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.23/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.23/addons/p5.dom.js"></script>
+<script src="P5Sketch.js" type="text/javascript"></script>
+
+
+<script>
+
+
+    var camera, scene, renderer;
+    var p5Texture;
+   // var texture_placeholder,
+	 var myHead;
+
+	var videoImageContext, foregroundVideo, videoTexture;
+
+
+
+    isUserInteracting = false,
+    onMouseDownMouseX = 0, onMouseDownMouseY = 0,
+    lon = 0, onMouseDownLon = 0,
+    lat = 0, onMouseDownLat = 0,
+    phi = 0, theta = 0,
+    distance = 500;
+
+
+    function init() {
+
+///GET THREE.JS GOING
+        var container, mesh;
+        container = document.getElementById( 'container' );
+        camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 1100 );
+        camera.target = new THREE.Vector3( 0, 0, 0 );
+        scene = new THREE.Scene();
+		renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        container.appendChild( renderer.domElement );
+
+
+
+////////360 VIDEO BACkGROUND, video texture mapped on a sphere
+        var geometry = new THREE.SphereBufferGeometry( 500, 60, 40 );
+        geometry.scale( - 1, 1, 1 );
+
+        var video = document.createElement( 'video' );
+        video.width = 640;
+        video.height = 360;
+        video.autoplay = true;
+        video.loop = true;
+        video.src = "dano.MP4";
+
+        var texture = new THREE.VideoTexture( video );
+        texture.minFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBFormat;
+        var material   = new THREE.MeshBasicMaterial( { map : texture } );
+        mesh = new THREE.Mesh( geometry, material );
+        scene.add( mesh );
+
+/////THROW IN A LIGHT
+        var ambient = new THREE.AmbientLight( 0x101030 );
+        scene.add( ambient );
+        var directionalLight = new THREE.DirectionalLight( 0xffeedd );
+        directionalLight.position.set(1, 1, -10 );
+        scene.add( directionalLight );
+
+////PUT IN A P5 SKETCH USING THE CANVAS MADE IN P5 AS A TEXTURE
+        geo = new THREE.PlaneGeometry(100,100);
+        p5Texture = new THREE.Texture( p5cs.elt );
+        mat = new THREE.MeshBasicMaterial({ map: p5Texture, transparent: true, opacity: 1, side: THREE.DoubleSide });
+        var plane = new THREE.Mesh(geo, mat);
+        plane.position.y = 0;
+		plane.position.z = -100;
+        plane.rotation.x = -Math.PI/2;
+        plane.rotation.y = -Math.PI/2;
+		plane.scale.set(2,2,2);
+        scene.add(plane);
+
+///START LOADING MODELS
+
+	 var manager = new THREE.LoadingManager();
+	      manager.onProgress = function ( item, loaded, total ) {
+            console.log( item, loaded, total );
+        };
+		var onProgress = function ( xhr ) {
+            if ( xhr.lengthComputable ) {
+                var percentComplete = xhr.loaded / xhr.total * 100;
+                console.log(  Math.round(percentComplete, 2) + '% downloaded' );
+           }
+        };
+        var onError = function ( xhr ) {
+        };
+
+
+//////LOAD IN A STORE BOUGHT .OBJ MODEL OF LITTLE MAN AND IT'S TEXTURE
+        var texture = new THREE.Texture();
+
+        var imageLoader = new THREE.ImageLoader( manager );
+        imageLoader.load( 'UV_Grid_Sm.jpg', function ( image ) {
+            texture.image = image;
+            texture.needsUpdate = true;
+        } );
+		var littleGuyLoader = new THREE.OBJLoader( manager );
+		littleGuyLoader.load( 'male02/male02.obj', function ( object ) {
+            object.traverse( function ( child ) {
+                if ( child instanceof THREE.Mesh ) {
+                    child.material.map = texture;
+                }
+            } );
+            object.position.y = -200;
+            object.position.z =  -200;
+            object.position.x = -100;
+            object.rotation.y = 90*Math.PI / 180;
+            object.scale.y = 1;
+            object.scale.z = 1;
+            scene.add( object );
+        }, onProgress, onError );
+
+
+
+
+///// LOAD IN ANOTHER OBJ MODLE MADE IN MICROSOFT 3D SCAN
+        // model
+        var bustLoader = new THREE.OBJLoader( manager );
+        bustLoader.load( 'danoBustObj4.obj', function ( object ) {
+        //loader.load( 'male02/male02.obj', function ( object ) {
+						myHead = object;
+            object.traverse( function ( child ) {
+                if ( child instanceof THREE.Mesh ) {
+                    child.material.map = texture;
+                }
+            } );
+            object.position.y = -200;
+            object.position.z = 300;
+            object.position.x = -100;
+            object.rotation.x = -Math.PI/2;
+            object.rotation.z= Math.PI/1;
+            object.scale.y = 1;
+            object.scale.z = 1;
+            scene.add( object );
+        }, onProgress, onError );
+
+
+// VIDEO_TEXTURE
+	foregroundVideo = document.createElement('video');
+	foregroundVideo.setAttribute("webkit-playsinline", "");
+	foregroundVideo.autoplay = true;
+	foregroundVideo.loop = true;
+	foregroundVideo.preload = "auto";
+	foregroundVideo.src = "sintel.mp4";//.mp4";
+
+	var videoImage = document.createElement('canvas');
+	videoImage.width = 480;
+	videoImage.height = 204;
+	//
+	videoImageContext = videoImage.getContext('2d');
+	videoImageContext.fillStyle = '#880000ff';
+	videoImageContext.fillRect(0,0, videoImage.width, videoImage.height);
+
+	// videoTexture = new THREE.Texture( foregroundVideo );
+	videoTexture = new THREE.Texture( videoImage );
+	videoTexture.minFilter = THREE.LinearFilter;
+	videoTexture.magFilter = THREE.LinearFilter;
+	videoTexture.format = THREE.RGBFormat;
+	videoTexture.generateMipmaps = false;
+
+	videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
+	videoTexture.needsUpdate = true;
+
+	var geo =	 new THREE.PlaneGeometry(16,9);// new THREE.PlaneGeometry( 240, 100, 4, 4 ); //
+	var mat = new THREE.MeshBasicMaterial( {map: videoTexture, side: THREE.DoubleSide} );
+	var mesh = new THREE.Mesh(  geo, mat );
+	mesh.rotation.y = -Math.PI/2;
+	mesh.scale.set(5,5,5);
+	scene.add(mesh);
+	///DON"T FORGET TO PUT STUFF IN ANIMATE
+
+
+//////USER INTERFACE
+        document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+        document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+        document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+        document.addEventListener( 'mousewheel', onDocumentMouseWheel, false );
+        document.addEventListener( 'MozMousePixelScroll', onDocumentMouseWheel, false);
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+
+				var Kinect2 = require('kinect2');
+				var kinect = new Kinect2();
+				if(kinect.open()) {
+					console.log("Kinect Opened");
+					//listen for body frames
+					kinect.on('bodyFrame', function(bodyFrame){
+						for(var i = 0;  i < bodyFrame.bodies.length; i++) {
+							if(bodyFrame.bodies[i].tracked) {
+								if (	myHead){
+									if ( bodyFrame.bodies[i].leftHandState == 3){
+							     	myHead.position.y = -bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthY * 512;
+								   	myHead.position.x = bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthX * 512;
+										console.log("state:" + bodyFrame.bodies[i].leftHandState  +  " pos:" + bodyFrame.bodies[i].joints[Kinect2.JointType.handLeft].depthX * 512);
+									}
+								}
+							
+							}
+
+						}
+					});
+
+					//request body frames
+					kinect.openBodyReader();
+
+					// //close the kinect after 5 seconds
+					setTimeout(function(){
+						kinect.close();
+						console.log("Kinect Closed");
+					}, 30000);
+				}
+
+
+
+
+
+        animate();
+    }
+
+
+    function animate() {
+        requestAnimationFrame( animate );
+			  videoImageContext.drawImage(foregroundVideo, 0, 0);
+		 	videoTexture.needsUpdate = true;
+        update();
+    }
+
+    function update() {
+        lat = Math.max( - 85, Math.min( 85, lat ) );
+        phi = THREE.Math.degToRad( 90 - lat );
+        theta = THREE.Math.degToRad( lon );
+        camera.position.x = distance * Math.sin( phi ) * Math.cos( theta );
+        camera.position.y = distance * Math.cos( phi );
+        camera.position.z = distance * Math.sin( phi ) * Math.sin( theta );
+        camera.lookAt( camera.target );
+
+// P5 ANIMATION
+        clear();
+        background( 'rgba(50, 89, 100, 0)' );
+        bug1.move();
+        bug1.display();
+        bug2.move();
+        bug2.display();
+        bug3.move();
+        bug3.display();
+        bug4.move();
+        bug4.display();
+        p5Texture.needsUpdate = true;
+
+        renderer.render( scene, camera );
+
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight);
+    }
+
+    function onDocumentMouseDown( event ) {
+        event.preventDefault();
+        isUserInteracting = true;
+        onPointerDownPointerX = event.clientX;
+        onPointerDownPointerY = event.clientY;
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+    }
+
+    function onDocumentMouseMove( event ) {
+        if ( isUserInteracting === true ) {
+            lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
+            lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
+        }
+    }
+
+    function onDocumentMouseUp( event ) {
+        isUserInteracting = false;
+    }
+
+    function onDocumentMouseWheel( event ) {
+        // WebKit
+        if ( event.wheelDeltaY ) {
+            distance -= event.wheelDeltaY * 0.05;
+        // Opera / Explorer 9
+        } else if ( event.wheelDelta ) {
+            distance -= event.wheelDelta * 0.05;
+        // Firefox
+        } else if ( event.detail ) {
+            distance += event.detail * 1.0;
+        }
+    }
+
+</script>
+	</body>
+</html>
