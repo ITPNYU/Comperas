@@ -50,7 +50,7 @@
 <script>
     var camera, scene, renderer;
     var p5Texture;
-   // var texture_placeholder,
+    var myHead;
 
 	var videoImageContext, foregroundVideo, videoTexture;
 
@@ -66,9 +66,9 @@ function getOtherUsers(){
 	console.log("Getting Users");
 	$.ajax( { url: "https://api.mlab.com/api/1/databases/osc/collections/osc_collection?apiKey=COrdiz9qAt5OlZOLRyoKaaaG-60PkkxN",
 	type: "GET",
-	success: function (data){
+	success: function (data){  //create the select ui element based on what came back from db
 		$.each(data, function(index,obj){
-			$("#others").append("'<option value = '" + obj.camera_rot_x + "'>" + obj._id + "</option>");
+			$("#others").append("'<option value = '" + obj.camera + "'>" + obj._id + "</option>");
 		console.log(obj);
 	})
 	},
@@ -76,9 +76,9 @@ function getOtherUsers(){
 
 }
 
-  var myHead;
+
 	var sender=	function sendPosition( ){
-			var myName = $("#name").val();
+			var myName = $("#name").val();  //get the name from the input element
 			console.log("Saving for " + myName);
 			$.ajax( { url: "https://api.mlab.com/api/1/databases/osc/collections/osc_collection?apiKey=COrdiz9qAt5OlZOLRyoKaaaG-60PkkxN",
 		//	data: JSON.stringify( { "_id":myName, "x" : 	myHead.position.y , "y": 	myHead.position.y , "z": 	myHead.position.z  } ),
@@ -88,21 +88,14 @@ function getOtherUsers(){
 		}
 
     function init() {
-			 getOtherUsers();
-        $("#save").click(sender);  //attache a script to button
+		getOtherUsers(); //populate the pull down
+        $("#save").click(sender);  //attache a script pulll downfor ressetting camera
 				$("#others").change(function(){
-
-					 var  cam_rot_x = $("#others").val();
-					 //var jsonCamera = JSON.parse(cameraState);
-					// var  cam_rot_x = jsonCamera.camera_rot_x;
-				//	 console.log(jsonCamera);
-					 console.log(cam_rot_x);
-					 myHead.rotation.x = cam_rot_x;
-					   camera.updateProjectionMatrix();
-						 animate();
-
-					// camera.matrix.fromArray(jsonCamera);
-				//	 camera.matrix.decompose(camera.position,camera.quaternion,camera.scale);
+					var  cameraState = $("#others").val();  //get the camera state from the select element
+					var jsonCamera = JSON.parse(cameraState); //parse it into json
+				 	console.log(jsonCamera);
+					 camera.matrix.fromArray(jsonCamera); // set the camera using saved camera settings
+					 camera.matrix.decompose(camera.position,camera.quaternion,camera.scale);
 				 });  //attache a script to button
 
 ///GET THREE.JS GOING
@@ -148,10 +141,10 @@ function getOtherUsers(){
         mat = new THREE.MeshBasicMaterial({ map: p5Texture, transparent: true, opacity: 1, side: THREE.DoubleSide });
         var plane = new THREE.Mesh(geo, mat);
         plane.position.y = 0;
-				plane.position.z = -100;
+		plane.position.z = -100;
         plane.rotation.x = -Math.PI/2;
         plane.rotation.y = -Math.PI/2;
-				plane.scale.set(2,2,2);
+		plane.scale.set(2,2,2);
         scene.add(plane);
 
 ///START LOADING MODELS
@@ -194,69 +187,6 @@ function getOtherUsers(){
         }, onProgress, onError );
 
 
-/*
-
-				//////LOAD IN A STORE BOUGHT .OBJ MODEL OF LITTLE MAN AND IT'S TEXTURE
-				        var texture = new THREE.Texture();
-
-				        var imageLoader = new THREE.ImageLoader( manager );
-				        imageLoader.load( 'UV_Grid_Sm.jpg', function ( image ) {
-				            texture.image = image;
-				            texture.needsUpdate = true;
-				        } );
-						var littleGuyLoader = new THREE.OBJLoader( manager );
-						littleGuyLoader.load( 'male02/male02.obj', function ( object ) {
-				            object.traverse( function ( child ) {
-				                if ( child instanceof THREE.Mesh ) {
-				                    child.material.map = texture;
-				                }
-				            } );
-				            object.position.y = -200;
-				            object.position.z =  -200;
-				            object.position.x = -100;
-				            object.rotation.y = 90*Math.PI / 180;
-				            object.scale.y = 1;
-				            object.scale.z = 1;
-				            scene.add( object );
-				        }, onProgress, onError );
-
-
-
-// VIDEO_TEXTURE
-	foregroundVideo = document.createElement('video');
-	foregroundVideo.setAttribute("webkit-playsinline", "");
-	foregroundVideo.autoplay = true;
-	foregroundVideo.loop = true;
-	foregroundVideo.preload = "auto";
-	foregroundVideo.src = "sintel.mp4";//.mp4";
-
-	var videoImage = document.createElement('canvas');
-	videoImage.width = 480;
-	videoImage.height = 204;
-	//
-	videoImageContext = videoImage.getContext('2d');
-	videoImageContext.fillStyle = '#880000ff';
-	videoImageContext.fillRect(0,0, videoImage.width, videoImage.height);
-
-	// videoTexture = new THREE.Texture( foregroundVideo );
-	videoTexture = new THREE.Texture( videoImage );
-	videoTexture.minFilter = THREE.LinearFilter;
-	videoTexture.magFilter = THREE.LinearFilter;
-	videoTexture.format = THREE.RGBFormat;
-	videoTexture.generateMipmaps = false;
-
-	videoTexture.wrapS = videoTexture.wrapT = THREE.ClampToEdgeWrapping;
-	videoTexture.needsUpdate = true;
-
-	var geo =	 new THREE.PlaneGeometry(16,9);// new THREE.PlaneGeometry( 240, 100, 4, 4 ); //
-	var mat = new THREE.MeshBasicMaterial( {map: videoTexture, side: THREE.DoubleSide} );
-	var mesh = new THREE.Mesh(  geo, mat );
-	mesh.rotation.y = -Math.PI/2;
-	mesh.scale.set(5,5,5);
-	scene.add(mesh);
-	///DON"T FORGET TO PUT STUFF IN ANIMATE
-
-*/
 
 //////USER INTERFACE
         document.addEventListener( 'mousedown', onDocumentMouseDown, false );
@@ -266,28 +196,31 @@ function getOtherUsers(){
         document.addEventListener( 'MozMousePixelScroll', onDocumentMouseWheel, false);
 
         window.addEventListener( 'resize', onWindowResize, false );
-
+	update();
       animate();
+	   
     }
 
     function animate() {
         requestAnimationFrame( animate );
-		//	  videoImageContext.drawImage(foregroundVideo, 0, 0);
-		//		videoTexture.needsUpdate = true;
 
-        update();
+		p5Animation()
+ 
     }
 
     function update() {
+		console.log("he");
         lat = Math.max( - 85, Math.min( 85, lat ) );
         phi = THREE.Math.degToRad( 90 - lat );
         theta = THREE.Math.degToRad( lon );
-        camera.position.x = distance * Math.sin( phi ) * Math.cos( theta );
-        camera.position.y = distance * Math.cos( phi );
+       camera.position.x = distance * Math.sin( phi ) * Math.cos( theta );
+       camera.position.y = distance * Math.cos( phi );
         camera.position.z = distance * Math.sin( phi ) * Math.sin( theta );
-        camera.lookAt( camera.target );
-
-// P5 ANIMATION
+       camera.lookAt( camera.target );
+    }
+	
+	function p5Animation(){
+		// P5 ANIMATION
         clear();
         background( 'rgba(50, 89, 100, 0)' );
         bug1.move();
@@ -299,10 +232,8 @@ function getOtherUsers(){
         bug4.move();
         bug4.display();
         p5Texture.needsUpdate = true;
-
         renderer.render( scene, camera );
-
-    }
+	}
 
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -323,7 +254,9 @@ function getOtherUsers(){
         if ( isUserInteracting === true ) {
             lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
             lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
+			update();
         }
+		
     }
 
     function onDocumentMouseUp( event ) {
